@@ -1,0 +1,13 @@
+:host {
+  ::ng-deep {
+    .e-selectionbackground {
+      filter: brightness(0.85);
+    }
+    .e-row:hover td:not(.e-selectionbackground) {
+      filter: brightness(0.95) !important;
+    }
+    .e-rowdragdropcell {
+      background-color: white !important;
+    }
+  }
+}

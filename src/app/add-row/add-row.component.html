@@ -1,0 +1,13 @@
+<div>
+  <h1 mat-dialog-title>Row</h1>
+  <div mat-dialog-content>
+    <mat-form-field appearance="fill" *ngFor="let key of data.dataKey">
+      <mat-label>{{key.field}}</mat-label>
+      <input matInput [type]="key.type" [(ngModel)]="data.data[key.field]">
+    </mat-form-field>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-button (click)="onNoClick()">No Thanks</button>
+    <button mat-button [mat-dialog-close]="data.data" cdkFocusInitial>Ok</button>
+  </div>
+</div>

@@ -1,0 +1,86 @@
+<ejs-treegrid
+  *ngIf="test"
+  #treegrid
+  [dataSource]='data'
+  allowTextWrap='true'
+  [textWrapSettings]='wrapSettings'
+  [enableInfiniteScrolling]='true'
+  height='100%'
+  enableHover='true'
+  allowSelection='true'
+  [selectionSettings]='selectionSettings'
+  [contextMenuItems]=" dialogCheck ? dialogMenuItems : batchMenuItems"
+  [editSettings]='getEditing(childRow)'
+  childMapping='subtasks'
+  [treeColumnIndex]='1'
+  [allowSorting]='sort'
+  [allowRowDragAndDrop]='true'
+  [allowResizing]='true'
+  [allowReordering]='true'
+  [allowFiltering]='filter ? true : false'
+  (actionBegin)='checker($event)'
+  (contextMenuOpen)='contextMenuOpen($event)'
+  (contextMenuClick)='contextMenuClick($event)'
+  [frozenColumns]='freeze'
+  (dataBound)="onLoad()"
+>
+  <e-columns>
+    <e-column
+      *ngFor="let col of cols"
+      [editType]="col.editType"
+      [field]="col.field"
+      [isPrimaryKey]="col.isPrimaryKey"
+      [headerText]="col.headerText"
+      [width]="col.width"
+      [textAlign]="col.textAlign"
+      [format]="col.format"
+      [defaultValue]="col.defaultValue"
+      [minWidth]="col.minWidth"
+      [visible]="visibleColumns.includes(col.field)"
+    >
+    </e-column>
+  </e-columns>
+</ejs-treegrid>
+
+<ejs-treegrid
+  *ngIf="!test"
+  #treegrid
+  [dataSource]='data'
+  [enableInfiniteScrolling]='true'
+  height='100%'
+  enableHover='true'
+  allowSelection='true'
+  [selectionSettings]='selectionSettings'
+  [contextMenuItems]=" dialogCheck ? dialogMenuItems : batchMenuItems"
+  [editSettings]='getEditing(dialogCheck)'
+  childMapping='subtasks'
+  [treeColumnIndex]='1'
+  [allowSorting]='sort'
+  [allowRowDragAndDrop]='true'
+  [allowResizing]='true'
+  [allowReordering]='true'
+  [allowFiltering]='filter ? true : false'
+  (actionBegin)='checker($event)'
+  (dataBound)='dataBound($event)'
+  (contextMenuOpen)='contextMenuOpen($event)'
+  (contextMenuClick)='contextMenuClick($event)'
+  [frozenColumns]='freeze'
+  (dataBound)="onLoad()"
+>
+  <e-columns>
+    <e-column
+      *ngFor="let col of cols"
+      [editType]="col.editType"
+      [field]="col.field"
+      [isPrimaryKey]="col.isPrimaryKey"
+      [headerText]="col.headerText"
+      [width]="col.width"
+      [textAlign]="col.textAlign"
+      [format]="col.format"
+      [defaultValue]="col.defaultValue"
+      [minWidth]="col.minWidth"
+      [visible]="visibleColumns.includes(col.field)"
+    >
+    </e-column>
+  </e-columns>
+</ejs-treegrid>

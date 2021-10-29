@@ -1,0 +1,17 @@
+<div>
+  <h1 mat-dialog-title>Choose Columns</h1>
+  <div mat-dialog-content *ngFor="let item of data.cols">
+    <input
+      [checked]="visibleColumns.includes(item.field)"
+      type="checkbox"
+      (click)="addCol(item.field)"
+    >
+    <p>{{item.headerText}}</p>
+  </div>
+
+  <div mat-dialog-actions>
+    <button mat-button (click)="onNoClick()">No Thanks</button>
+    <button mat-button [mat-dialog-close]="visibleColumns" cdkFocusInitial>Ok</button>
+  </div>
+</div>
+

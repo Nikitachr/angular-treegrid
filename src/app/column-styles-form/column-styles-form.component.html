@@ -1,0 +1,52 @@
+<h1>Styles</h1>
+<ng-container [formGroup]="form">
+  <mat-form-field appearance="fill">
+    <mat-label>Header Text</mat-label>
+    <input formControlName="headerText" matInput>
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Min Width</mat-label>
+    <input formControlName="minWidth" matInput>
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Alignment</mat-label>
+    <mat-select formControlName="textAlign">
+      <mat-option value="Left">Left</mat-option>
+      <mat-option value="Center">Center</mat-option>
+      <mat-option value="Right">Right</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Default Value</mat-label>
+    <input formControlName="defaultValue" matInput>
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Data Type</mat-label>
+    <mat-select formControlName="editType">
+      <mat-option *ngFor="let types of editTypesArr" [value]="types.type">{{types.name}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Font Size</mat-label>
+    <input type="number" formControlName="fontSize" matInput>
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Text warp</mat-label>
+    <mat-select formControlName="textWrap">
+      <mat-option value="on">on</mat-option>
+      <mat-option value="off">off</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Font Color</mat-label>
+    <input type="color" formControlName="color" matInput>
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Background color</mat-label>
+    <input type="color" formControlName="backgroundColor" matInput>
+  </mat-form-field>
+</ng-container>
+<div class="buttons">
+  <button mat-flat-button (click)="cancelChanges()">Cancel</button>
+  <button mat-flat-button color="primary" (click)="saveChanges()">Save</button>
+</div>

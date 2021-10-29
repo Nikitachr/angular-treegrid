@@ -1,0 +1,19 @@
+<div>
+  <h1 mat-dialog-title>Column</h1>
+  <div mat-dialog-content>
+    <mat-form-field appearance="fill">
+      <mat-label>Column name</mat-label>
+      <input matInput [(ngModel)]="data.columnName">
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Column type</mat-label>
+      <mat-select [(ngModel)]="this.data.columnType">
+        <mat-option *ngFor="let types of editTypesArr" [value]="types.type">{{types.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-button (click)="onNoClick()">No Thanks</button>
+    <button mat-button [mat-dialog-close]="data" cdkFocusInitial>Ok</button>
+  </div>
+</div>
