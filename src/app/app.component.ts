@@ -15,10 +15,11 @@ import { MenuEventArgs } from '@syncfusion/ej2-navigations';
 import { MatDialog } from "@angular/material/dialog";
 
 import { ColumnStylesFormComponent } from "src/app/column-styles-form/column-styles-form.component";
-import { filter, first } from "rxjs/operators";
+import { filter, first, map } from "rxjs/operators";
 import { DialogComponent } from './dialog/dialog.component';
 import { ChooseColumnsComponent } from './choose-columns/choose-columns.component';
 import { AddRowComponent } from './add-row/add-row.component';
+import { ApiService } from "src/app/services/api.service";
 
 export interface IColumnAttributes {
   editType: string;
@@ -85,12 +86,11 @@ export class AppComponent implements OnInit {
   @ViewChild('treegrid')
   private treeGridObj!: TreeGridComponent | any;
 
-  constructor(private dialog: MatDialog) {
+  constructor(private dialog: MatDialog, private apiService: ApiService) {
   }
 
   public cols: Partial<IColumnAttributes>[] = [
     {
-      editType: 'numericedit',
       field: 'taskID',
       isPrimaryKey: true,
       headerText: 'Task ID',
@@ -170,10 +170,34 @@ export class AppComponent implements OnInit {
 
   ngAfterViewInit(): void {
     this.addThousandRows();
+
   }
 
   ngOnInit(): void {
-    this.wrapSettings = { wrapMode: 'Content' }; 
+    this.apiService.getAllRows()
+      .pipe(
+        map(res => res.map((el: any) => {
+          return {
+            ...el,
+            taskID: el._id,
+            startDate: new Date(el.startDate),
+            endDate: new Date(el.endDate),
+            ...(el.subtasks?.length && {
+              subtasks: el.subtasks.map((subt: any) => {
+                return {
+                  ...subt,
+                  taskID: subt._id,
+                  startDate: new Date(subt.startDate),
+                  endDate: new Date(subt.endDate)
+                }
+              })
+            })
+          }
+        }))
+      )
+      .subscribe(res => this.data = res);
+
+    this.wrapSettings = { wrapMode: 'Content' };
     this.selectionSettings = { type: 'Single' };
     this.dialogMenuItems = [
       'Save', 'Cancel', 'Update',
@@ -217,33 +241,34 @@ export class AppComponent implements OnInit {
   }
 
   private addThousandRows(): void {
-    let index = 0;
-    const arr = [];
 
-    for (let i = 1; i <= 1000; i++) {
-      const data: any = {
-        taskID: i,
-        taskName: 'Plan #' + i,
-        startDate: new Date('02/03/2017'),
-        endDate: new Date('02/07/2017'),
-        duration: Math.ceil(Math.random() * 10),
-        progress: Math.ceil(Math.random() * 100),
-        priority: 'Normal',
-        approved: false,
-        subtasks: []
-      };
-
-      if (i % 5 === 1) {
-        index++;
-        arr.push(data);
-      } else {
-        arr[index - 1].subtasks.push(data);
-      }
-
-      if (i === 1000) {
-        this.data = arr;
-      }
-    }
+    // let index = 0;
+    // const arr = [];
+    //
+    // for (let i = 1; i <= 1000; i++) {
+    //   const data: any = {
+    //     taskID: i,
+    //     taskName: 'Plan #' + i,
+    //     startDate: new Date('02/03/2017'),
+    //     endDate: new Date('02/07/2017'),
+    //     duration: Math.ceil(Math.random() * 10),
+    //     progress: Math.ceil(Math.random() * 100),
+    //     priority: 'Normal',
+    //     approved: false,
+    //     subtasks: []
+    //   };
+    //
+    //   if (i % 5 === 1) {
+    //     index++;
+    //     arr.push(data);
+    //   } else {
+    //     arr[index - 1].subtasks.push(data);
+    //   }
+    //
+    //   if (i === 1000) {
+    //     this.data = arr;
+    //   }
+    // }
   }
 
   private deleteColumn(): void {
@@ -275,7 +300,7 @@ export class AppComponent implements OnInit {
     });
   }
 
-  private addRow(): void {
+  private addRow(id?: number): void {
     let dataKey: any = [];
     let data: any = {};
 
@@ -286,11 +311,60 @@ export class AppComponent implements OnInit {
 
     const dialogRef = this.dialog.open(AddRowComponent, {
       width: '300px',
-      data: {data, dataKey}
+      data: { data, dataKey }
     });
-
+    console.log(this.treeGridObj.getRowByIndex(this.rowIndex));
     dialogRef.afterClosed().subscribe(result => {
-      this.treeGridObj.addRecord(result, (this.rowIndex));
+      this.addRowApi(result, this.rowIndex, id);
+    });
+  }
+
+  public addRowApi(row: any, index: number, id?: number): void {
+    const newRow = {
+      duration: row?.duration,
+      taskName: row?.taskName,
+      priority: row?.priority,
+      progress: row?.progress,
+      startDate: new Date(row?.startDate).getTime(),
+      endDate: new Date(row?.endDate).getTime(),
+      approved: false
+    };
+    if (id) {
+      this.apiService.createSubtask(id, newRow).subscribe(res => {
+        res = res.task;
+        this.treeGridObj.addRecord({
+          taskID: res._id,
+          taskName: res.taskName,
+          priority: res.priority,
+          approved: res.approved,
+          startDate: new Date(res.startDate),
+          endDate: new Date(res.endDate),
+          duration: res.duration,
+          progress: res.progress
+        }, (index));
+        setTimeout(() => {
+          this.updateStyles();
+        }, 5)
+      })
+      return;
+    }
+
+    this.apiService.createTask(newRow).subscribe(res => {
+      res = res.task;
+      this.treeGridObj.addRecord({
+        taskID: res._id,
+        taskName: res.taskName,
+        priority: res.priority,
+        approved: res.approved,
+        startDate: new Date(res.startDate),
+        endDate: new Date(res.endDate),
+        duration: res.duration,
+        progress: res.progress
+      }, (index));
+      setTimeout(() => {
+        this.updateStyles();
+      }, 5)
+
     });
   }
 
@@ -313,7 +387,7 @@ export class AppComponent implements OnInit {
   private chooseColumn(): void {
     const dialogRef = this.dialog.open(ChooseColumnsComponent, {
       width: '250px',
-      data: {cols: this.cols, visible: this.visibleColumns}
+      data: { cols: this.cols, visible: this.visibleColumns }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -423,7 +497,13 @@ export class AppComponent implements OnInit {
   }
 
   public getEditing(checker: boolean): any {
-    return { allowEditing: true, allowAdding: true, allowDeleting: true, mode: 'Dialog', newRowPosition: checker ? 'Child' : 'Below' };
+    return {
+      allowEditing: true,
+      allowAdding: true,
+      allowDeleting: true,
+      mode: 'Dialog',
+      newRowPosition: checker ? 'Child' : 'Below'
+    };
   }
 
   public contextMenuOpen(args?: any): void {
@@ -450,7 +530,7 @@ export class AppComponent implements OnInit {
     }
   }
 
-  public contextMenuClick(args?: MenuEventArgs): void {
+  public contextMenuClick(args?: MenuEventArgs | any): void {
     const filter = 'filter';
     const sort = 'sort';
     const multiSelect = 'multiSelect';
@@ -471,17 +551,21 @@ export class AppComponent implements OnInit {
     }
 
     if (args?.item.id === 'deleteRow') {
-      this.treeGridObj.deleteRow(this.treeGridObj.getRowByIndex(this.rowIndex));
+      console.log(args)
+      this.treeGridObj.deleteRow(this.treeGridObj.getRowByIndex(args.rowInfo.rowIndex));
     }
 
     if (args?.item.id === 'addNextRow') {
+      this.rowIndex = args.rowInfo.rowIndex;
       this.childRow = false;
       this.addRow();
     }
 
     if (args?.item.id === 'addChildRow') {
+      this.rowIndex = args.rowInfo.rowIndex;
+      console.log(args);
       this.childRow = true;
-      this.addRow();
+      this.addRow(args.rowInfo.rowData.taskID);
     }
 
 
@@ -608,7 +692,7 @@ export class AppComponent implements OnInit {
           let index = this.rowIndex;
 
           this.copyContent.forEach((content: any) => {
-            this.treeGridObj.addRecord(content, (this.rowIndex > this.prevRowIndex ? (index + diff) - this.copyContent.length : index + diff));
+            this.addRowApi(content, (this.rowIndex > this.prevRowIndex ? (index + diff) - this.copyContent.length : index + diff))
             diff++;
             index++;
           });
@@ -617,7 +701,7 @@ export class AppComponent implements OnInit {
         let diff = 0;
         let index = this.rowIndex;
         this.copyContent.forEach((content: any) => {
-          this.treeGridObj.addRecord(content, index + diff);
+          this.addRowApi(content, index + diff)
           diff++;
           index++;
         });
@@ -647,5 +731,37 @@ export class AppComponent implements OnInit {
     if (this.copy) {
       this.copyStyles(this.prevRowIndex);
     }
+  }
+
+  public editRow(data: any): void {
+    const task = {
+      endDate: data.endDate.getTime(),
+      startDate: data.startDate.getTime(),
+      duration: data.duration,
+      approved: data.approved,
+      priority: data.priority,
+      taskName: data.taskName,
+      progress: data.progress
+    };
+    this.apiService.updateTask(data._id, task).subscribe();
+  }
+
+  public onActionComplete(event: any): any {
+    console.log(event);
+    if (event.requestType === 'delete') {
+      this.deleteTaskApi(event.data);
+    }
+    switch (event.action) {
+      case 'edit':
+        this.editRow(event.data);
+        break;
+    }
+  }
+
+  public deleteTaskApi(tasks: any): void {
+    tasks.forEach((el: any) => {
+      console.log(el)
+      this.apiService.deleteTask(el._id).subscribe()
+    });
   }
 }

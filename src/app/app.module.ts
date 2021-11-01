@@ -33,6 +33,7 @@ import { MatOptionModule } from "@angular/material/core";
 import { DialogComponent } from "src/app/dialog/dialog.component";
 import { ChooseColumnsComponent } from './choose-columns/choose-columns.component';
 import { AddRowComponent } from './add-row/add-row.component';
+import { HttpClientModule } from "@angular/common/http";
 
 @NgModule({
   declarations: [
@@ -64,7 +65,8 @@ import { AddRowComponent } from './add-row/add-row.component';
     MatSelectModule,
     MatOptionModule,
     MatCheckboxModule,
-    FormsModule
+    FormsModule,
+    HttpClientModule
   ],
   providers: [
     FreezeService,

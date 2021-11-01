@@ -22,6 +22,8 @@
   (contextMenuOpen)='contextMenuOpen($event)'
   (contextMenuClick)='contextMenuClick($event)'
   [frozenColumns]='freeze'
+  (actionComplete)="onActionComplete($event)"
+
   (dataBound)="onLoad()"
 >
   <e-columns>
@@ -61,7 +63,6 @@
   [allowReordering]='true'
   [allowFiltering]='filter ? true : false'
   (actionBegin)='checker($event)'
-  (dataBound)='dataBound($event)'
   (contextMenuOpen)='contextMenuOpen($event)'
   (contextMenuClick)='contextMenuClick($event)'
   [frozenColumns]='freeze'
