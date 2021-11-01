@@ -174,28 +174,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.apiService.getAllRows()
-      .pipe(
-        map(res => res.map((el: any) => {
-          return {
-            ...el,
-            taskID: el._id,
-            startDate: new Date(el.startDate),
-            endDate: new Date(el.endDate),
-            ...(el.subtasks?.length && {
-              subtasks: el.subtasks.map((subt: any) => {
-                return {
-                  ...subt,
-                  taskID: subt._id,
-                  startDate: new Date(subt.startDate),
-                  endDate: new Date(subt.endDate)
-                }
-              })
-            })
-          }
-        }))
-      )
-      .subscribe(res => this.data = res);
+    this.updateData();
 
     this.wrapSettings = { wrapMode: 'Content' };
     this.selectionSettings = { type: 'Single' };
@@ -313,7 +292,6 @@ export class AppComponent implements OnInit {
       width: '300px',
       data: { data, dataKey }
     });
-    console.log(this.treeGridObj.getRowByIndex(this.rowIndex));
     dialogRef.afterClosed().subscribe(result => {
       this.addRowApi(result, this.rowIndex, id);
     });
@@ -332,19 +310,7 @@ export class AppComponent implements OnInit {
     if (id) {
       this.apiService.createSubtask(id, newRow).subscribe(res => {
         res = res.task;
-        this.treeGridObj.addRecord({
-          taskID: res._id,
-          taskName: res.taskName,
-          priority: res.priority,
-          approved: res.approved,
-          startDate: new Date(res.startDate),
-          endDate: new Date(res.endDate),
-          duration: res.duration,
-          progress: res.progress
-        }, (index));
-        setTimeout(() => {
-          this.updateStyles();
-        }, 5)
+        this.updateData();
       })
       return;
     }
@@ -534,6 +500,7 @@ export class AppComponent implements OnInit {
     const filter = 'filter';
     const sort = 'sort';
     const multiSelect = 'multiSelect';
+    this.rowIndex = args.rowInfo?.rowData?.rowIndex || this.rowIndex;
 
     const mockContextMenu: any[] = [];
     if (this.dialogCheck) {
@@ -551,7 +518,6 @@ export class AppComponent implements OnInit {
     }
 
     if (args?.item.id === 'deleteRow') {
-      console.log(args)
       this.treeGridObj.deleteRow(this.treeGridObj.getRowByIndex(args.rowInfo.rowIndex));
     }
 
@@ -563,7 +529,6 @@ export class AppComponent implements OnInit {
 
     if (args?.item.id === 'addChildRow') {
       this.rowIndex = args.rowInfo.rowIndex;
-      console.log(args);
       this.childRow = true;
       this.addRow(args.rowInfo.rowData.taskID);
     }
@@ -747,7 +712,6 @@ export class AppComponent implements OnInit {
   }
 
   public onActionComplete(event: any): any {
-    console.log(event);
     if (event.requestType === 'delete') {
       this.deleteTaskApi(event.data);
     }
@@ -760,8 +724,32 @@ export class AppComponent implements OnInit {
 
   public deleteTaskApi(tasks: any): void {
     tasks.forEach((el: any) => {
-      console.log(el)
       this.apiService.deleteTask(el._id).subscribe()
     });
+  }
+
+  public updateData(): void {
+    this.apiService.getAllRows()
+      .pipe(
+        map(res => res.map((el: any) => {
+          return {
+            ...el,
+            taskID: el._id,
+            startDate: new Date(el.startDate),
+            endDate: new Date(el.endDate),
+            ...(el.subtasks?.length && {
+              subtasks: el.subtasks.map((subt: any) => {
+                return {
+                  ...subt,
+                  taskID: subt._id,
+                  startDate: new Date(subt.startDate),
+                  endDate: new Date(subt.endDate)
+                }
+              })
+            })
+          }
+        }))
+      )
+      .subscribe(res => this.data = res);
   }
 }
