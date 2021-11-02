@@ -1,41 +1,27 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-
-import { DropDownList, ChangeEventArgs } from '@syncfusion/ej2-angular-dropdowns';
+import { ChangeEventArgs, DropDownList } from '@syncfusion/ej2-angular-dropdowns';
 import {
   Column,
-  RowDDService,
-  PageService,
-  TreeGridComponent,
   ContextMenuService,
   EditService,
+  PageService,
+  RowDDService,
   SelectionService,
-  SortService
+  SortService,
+  TreeGridComponent
 } from '@syncfusion/ej2-angular-treegrid';
 import { MenuEventArgs } from '@syncfusion/ej2-navigations';
-import { MatDialog } from "@angular/material/dialog";
+import { MatDialog } from '@angular/material/dialog';
+import { filter, first, map } from 'rxjs/operators';
 
-import { ColumnStylesFormComponent } from "src/app/column-styles-form/column-styles-form.component";
-import { filter, first, map } from "rxjs/operators";
+import { ColumnStylesFormComponent } from 'src/app/column-styles-form/column-styles-form.component';
 import { DialogComponent } from './dialog/dialog.component';
 import { ChooseColumnsComponent } from './choose-columns/choose-columns.component';
 import { AddRowComponent } from './add-row/add-row.component';
-import { ApiService } from "src/app/services/api.service";
-
-export interface IColumnAttributes {
-  editType: string;
-  field: string;
-  isPrimaryKey: boolean;
-  headerText: string;
-  format: string;
-  width: string;
-  textAlign: string;
-  fontSize: number;
-  color: string;
-  defaultValue: any;
-  minWidth: number;
-  backgroundColor: string;
-  textWrap: string;
-}
+import { ApiService } from 'src/app/services/api.service';
+import { defaultColumns } from 'src/app/constants/default-columns';
+import { dataSourceFilterCols } from 'src/app/constants/data-source-filter-cols';
+import { priorityFilters } from 'src/app/constants/priority-filters';
 
 @Component({
   selector: 'app-root',
@@ -89,89 +75,7 @@ export class AppComponent implements OnInit {
   constructor(private dialog: MatDialog, private apiService: ApiService) {
   }
 
-  public cols: Partial<IColumnAttributes>[] = [
-    {
-      field: 'taskID',
-      isPrimaryKey: true,
-      headerText: 'Task ID',
-      width: '100',
-      textAlign: 'Center',
-      color: '#000',
-      fontSize: 14,
-      textWrap: 'off'
-    },
-    {
-      field: 'taskName',
-      headerText: 'Task Name',
-      isPrimaryKey: false,
-      width: '302',
-      textAlign: 'Left',
-      color: '#000',
-      fontSize: 14,
-      textWrap: 'off'
-    },
-    {
-      editType: 'datepickeredit',
-      field: 'startDate',
-      isPrimaryKey: false,
-      headerText: 'Start Date',
-      format: 'yMd',
-      width: '180',
-      textAlign: 'Center',
-      color: '#000',
-      fontSize: 14,
-      textWrap: 'off'
-    },
-    {
-      editType: 'datepickeredit',
-      field: 'endDate',
-      isPrimaryKey: false,
-      headerText: 'End Date',
-      format: "yMd",
-      width: '180',
-      textAlign: 'Center',
-      color: '#000',
-      fontSize: 14,
-      textWrap: 'off'
-    },
-    {
-      editType: 'numericedit',
-      field: 'duration',
-      headerText: 'Duration',
-      isPrimaryKey: false,
-      width: '180',
-      textAlign: 'Center',
-      color: '#000',
-      fontSize: 14,
-      textWrap: 'off'
-    },
-    {
-      editType: 'numericedit',
-      field: 'progress',
-      isPrimaryKey: false,
-      headerText: 'Progress',
-      width: '180',
-      textAlign: 'Center',
-      color: '#000',
-      fontSize: 14,
-      textWrap: 'off'
-    },
-    {
-      field: 'priority',
-      headerText: 'Priority',
-      isPrimaryKey: false,
-      width: '190',
-      textAlign: 'Center',
-      color: '#000',
-      fontSize: 14,
-      textWrap: 'off'
-    },
-  ]
-
-  ngAfterViewInit(): void {
-    this.addThousandRows();
-
-  }
+  public cols = defaultColumns;
 
   ngOnInit(): void {
     this.updateData();
@@ -217,37 +121,6 @@ export class AppComponent implements OnInit {
 
     this.getFilterDuration();
     this.getFilterPriority();
-  }
-
-  private addThousandRows(): void {
-
-    // let index = 0;
-    // const arr = [];
-    //
-    // for (let i = 1; i <= 1000; i++) {
-    //   const data: any = {
-    //     taskID: i,
-    //     taskName: 'Plan #' + i,
-    //     startDate: new Date('02/03/2017'),
-    //     endDate: new Date('02/07/2017'),
-    //     duration: Math.ceil(Math.random() * 10),
-    //     progress: Math.ceil(Math.random() * 100),
-    //     priority: 'Normal',
-    //     approved: false,
-    //     subtasks: []
-    //   };
-    //
-    //   if (i % 5 === 1) {
-    //     index++;
-    //     arr.push(data);
-    //   } else {
-    //     arr[index - 1].subtasks.push(data);
-    //   }
-    //
-    //   if (i === 1000) {
-    //     this.data = arr;
-    //   }
-    // }
   }
 
   private deleteColumn(): void {
@@ -372,9 +245,8 @@ export class AppComponent implements OnInit {
         return dd;
       },
       write: (args: { element: Element, column: Column }) => {
-        let dataSource: string[] = ['All', '0', '1', '3', '4', '5', '6', '8', '9'];
         const dropDownFilter = new DropDownList({
-          dataSource: dataSource,
+          dataSource: dataSourceFilterCols,
           value: 'All',
           change: (e: ChangeEventArgs) => {
             let valuenum: any = +e.value;
@@ -400,9 +272,8 @@ export class AppComponent implements OnInit {
         return dd;
       },
       write: (args: { element: Element, column: Column }) => {
-        let dataSource: string[] = ['All', 'Low', 'Normal', 'High', 'Critical'];
         const dropDownFilter = new DropDownList({
-          dataSource: dataSource,
+          dataSource: priorityFilters,
           value: 'All',
           change: (e: ChangeEventArgs) => {
             let id: any = <string>dropDownFilter.element.id;
@@ -532,7 +403,6 @@ export class AppComponent implements OnInit {
       this.childRow = true;
       this.addRow(args.rowInfo.rowData.taskID);
     }
-
 
     if (args?.item.id === filter) {
       mockContextMenu.forEach(item => {
